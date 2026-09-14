@@ -51,18 +51,20 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-3):
     #       termine cuando la mayor variación de un barrido sea menor que tol.
     # HINT: la acción que dicta la política en el estado s es policy[s], y sus
     #       transiciones posibles son P[s][policy[s]].
-    delta = np.inf
+    while True:
+        delta = 0.0
 
-    while delta > tol:
-        for i in range(nS):
-            v = V[i]
+        for state in range(nS):
+            old_value = V[state]
+            action = int(policy[state])
+            V[state] = sum(
+                probability * (reward + gamma * V[next_state])
+                for probability, next_state, reward, terminal in P[state][action]
+            )
+            delta = max(delta, abs(old_value - V[state]))
 
-            accion = policy[i] # 0 o 1, en funcion del env, arriba derecha o abajo derecha
-            # P[i][accion] -- nos da una lista, al ser determinista solo hay 1 elemento
-            prob,next_state, reward, terminal = P[i][accion][0] # P[i][accion] = (prob,next_state, reward, terminal)
-            V[i] = prob * (reward + gamma*V[next_state])
-
-            delta = min(delta, np.abs(v - V[i]))
+        if delta < tol:
+            break
 
     # END CODE HERE
     # ============================================================
@@ -98,37 +100,18 @@ def policy_improvement(P, nS, nA, value_from_policy, gamma=0.9):
     #       de P y de value_from_policy, y guarda en new_policy[s] la acción
     #       que maximiza Q.
     # HINT: np.argmax devuelve el índice del máximo.
-    policy_stable = True
-    for i in range(nS):
-        probs = []
-        actions = []
-        for j in P[i]:
-            prob, next_state, reward, terminal = P[i][j][0]
-            probs.append(prob)
-            actions.append(j)
+    for state in range(nS):
+        action_values = np.zeros(nA)
 
-        old_action = actions[np.argmax(probs)]
-        rewards = []
-        actions = []
-        for k in range(nS):
-            if k != i:
-                for h in P[i]:
-                    prob, next_state, reward, terminal = P[i][h][0]
+        for action in range(nA):
+            action_values[action] = sum(
+                probability * (reward + gamma * value_from_policy[next_state])
+                for probability, next_state, reward, terminal in P[state][action]
+            )
 
-                    final_reward = reward + gamma * value_from_policy[next_state]
+        new_policy[state] = int(np.argmax(action_values))
 
-                    rewards.append(final_reward)
-                    actions.append(h)
-
-        new_policy[i] = actions[np.argmax(rewards)]
-
-        if old_action != new_policy[i]:
-            policy_stable = False
-
-    if policy_stable:
-        return value_from_policy, new_policy
-    else:
-        return False, new_policy
+    return new_policy
     # END CODE HERE
     # ============================================================
 
@@ -160,17 +143,14 @@ def policy_iteration(P, nS, nA, gamma=0.9, tol=1e-3):
     # HINT: np.array_equal compara dos políticas.
 
     while True:
-        past_policy = policy
-        V = policy_evaluation(P,nS,nA,policy,gamma,tol)
-        value_from_policy, policy = policy_improvement(P,nS,nA,value_from_policy=V,gamma=gamma)
-        
-        if value_from_policy:
-            print("====================================")
-            print("V", V)
-            print("====================================")
+        V = policy_evaluation(P, nS, nA, policy, gamma, tol)
+        new_policy = policy_improvement(P, nS, nA, V, gamma)
 
-            if np.array_equal(policy,past_policy):
-                break
+        if np.array_equal(policy, new_policy):
+            policy = new_policy
+            break
+
+        policy = new_policy
     # END CODE HERE
     # ============================================================
 
