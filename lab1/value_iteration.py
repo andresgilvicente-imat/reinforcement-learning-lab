@@ -44,7 +44,35 @@ def value_iteration(P, nS, nA, gamma=0.9, tol=1e-3):
     #       política completa antes de mejorarla: ambas cosas ocurren en el
     #       mismo barrido.
 
-    raise NotImplementedError("Implementa value_iteration y borra esta línea.")
+    while True:
+
+        delta = 0
+
+        for state in range(nS):
+
+            old_value = V[state]  # guardamos el valor anterior para este estado
+            V[state] = max(
+                sum(probability * (reward + gamma * V[next_state]) # sumatorio en s' y r
+                    for probability, next_state, reward, terminal in P[state][action]
+                ) 
+                for action in range(nA)  # probamos todas las acciones desde este estado, y cogemos el valor máximo que nos proporciona una de ellas
+            ) 
+
+            delta = max(delta, abs(old_value - V[state]))
+
+        if delta < tol:
+            break
+
+    # ya tenemos los values óptimos, ahora extraemos la política óptima en base a ellos
+    policy = np.array([  # rellenamos la política con las acciones que maximizan el retorno
+        max(range(nA), key=lambda action: 
+            
+            sum(probability * (reward + gamma * V[next_state])   # sumatorio en s' y r
+                for probability, next_state, reward, terminal in P[state][action])) 
+
+        for state in range(nS)  # para cada estado, elegimos una acción que meter en la política
+    ])
+
 
     # END CODE HERE
     # ============================================================

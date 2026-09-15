@@ -59,7 +59,7 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-3):
             action = int(policy[state])
             V[state] = sum(
                 probability * (reward + gamma * V[next_state])
-                for probability, next_state, reward, terminal in P[state][action]
+                for probability, next_state, reward, terminal in P[state][action]  # P (dict): P[s][a] -> [(prob, next_state, reward, terminal), ...]
             )
             delta = max(delta, abs(old_value - V[state]))
 
@@ -100,16 +100,16 @@ def policy_improvement(P, nS, nA, value_from_policy, gamma=0.9):
     #       de P y de value_from_policy, y guarda en new_policy[s] la acción
     #       que maximiza Q.
     # HINT: np.argmax devuelve el índice del máximo.
-    for state in range(nS):
-        action_values = np.zeros(nA)
+    for state in range(nS):  # para cada estado, vemos qué acción es la que nos daría mayor action_value: el max_{a} q(s,a)
+        action_values = np.zeros(nA)  # almacenamos los valores que nos proporciona cada "action" posible ejecutada desde el estado "state"
 
         for action in range(nA):
-            action_values[action] = sum(
+            action_values[action] = sum(  # si estamos en caso determinista, este sumatorio será de 1 solo elemento (una probabilidad de 1 y el resto probabilidades de 0)
                 probability * (reward + gamma * value_from_policy[next_state])
                 for probability, next_state, reward, terminal in P[state][action]
             )
 
-        new_policy[state] = int(np.argmax(action_values))
+        new_policy[state] = int(np.argmax(action_values))  # esa acción con mayor valor, es la que asignamos para construir la nueva política
 
     return new_policy
     # END CODE HERE
@@ -146,11 +146,12 @@ def policy_iteration(P, nS, nA, gamma=0.9, tol=1e-3):
         V = policy_evaluation(P, nS, nA, policy, gamma, tol)
         new_policy = policy_improvement(P, nS, nA, V, gamma)
 
-        if np.array_equal(policy, new_policy):
-            policy = new_policy
-            break
-
+        converged = np.array_equal(policy, new_policy)
         policy = new_policy
+
+        if converged:
+            break
+        
     # END CODE HERE
     # ============================================================
 
