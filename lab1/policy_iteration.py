@@ -56,7 +56,7 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-3):
 
         for state in range(nS):
             old_value = V[state]
-            action = int(policy[state])
+            action = int(policy[state]) # viene determinado ya por la policy es obligatoria, politica arbitraria
             V[state] = sum(
                 probability * (reward + gamma * V[next_state])
                 for probability, next_state, reward, terminal in P[state][action]

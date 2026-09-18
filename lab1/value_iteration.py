@@ -44,8 +44,23 @@ def value_iteration(P, nS, nA, gamma=0.9, tol=1e-3):
     #       política completa antes de mejorarla: ambas cosas ocurren en el
     #       mismo barrido.
 
-    raise NotImplementedError("Implementa value_iteration y borra esta línea.")
+    while True:
+        delta = 0
+        for state in range(nS):
+            Q = np.zeros(nA)
+            v  = V[state]
+            for action in range(nA): 
+                Q[action] = sum(probability * (reward + gamma * V[next_state]) 
+                                for probability, next_state, reward, terminal in P[state][action]) # Al ser determinista realmente solo hay 1 acción, pero puede ser que sea stochastic
+                                                                                                   # puede haber varios sitios a los que llegar con esa acción
 
+            V[state] = max(Q)
+            policy[state] = np.argmax(Q)
+
+            delta = max(delta, abs(v-V[state]))
+
+        if delta < tol:
+            break
     # END CODE HERE
     # ============================================================
 
