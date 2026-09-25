@@ -16,9 +16,9 @@ PROJECT_DIR = Path(__file__).resolve().parents[1]
 if str(PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_DIR))
 
-from env import INITIAL_STATES, JumpToTheGoalEnv  # noqa: E402
-from policy_iteration import policy_improvement, policy_iteration  # noqa: E402
-from value_iteration import value_iteration  # noqa: E402
+from lab1.src.env import INITIAL_STATES, JumpToTheGoalEnv  # noqa: E402
+from lab1.src.policy_iteration import policy_improvement, policy_iteration  # noqa: E402
+from lab1.src.value_iteration import value_iteration  # noqa: E402
 
 BASE_GAMMA = 0.9
 BASE_TOL = 1e-3

@@ -28,7 +28,7 @@ import gymnasium as gym
 import numpy as np
 from gymnasium.envs.registration import register
 
-from env import (
+from lab1.src.env import (
     CELL_TO_STATE,
     INITIAL_STATES,
     N_NON_TERMINAL,
@@ -37,8 +37,8 @@ from env import (
     R_STEP,
     TERMINAL_STATE,
 )
-from policy_iteration import policy_iteration
-from value_iteration import value_iteration
+from lab1.src.policy_iteration import policy_iteration
+from lab1.src.value_iteration import value_iteration
 
 register(id="JumpToTheGoalEnv-v0", entry_point="env:JumpToTheGoalEnv")
 
