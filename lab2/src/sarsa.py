@@ -79,22 +79,33 @@ def episodio_sarsa(env, Q, alpha, gamma, epsilon, rng):
 
     state, _ = env.reset()
     action = epsilon_greedy(Q,state,epsilon,rng)
-    
+    t = 0
+    r = 0
+    success = False
     while True:
         next_state, reward, terminated, _, _ = env.step(action)
-        
+        t += 1
+        r += reward # without discount 
         next_action = epsilon_greedy(Q,next_state,epsilon,rng)
 
-        Q[state,action] += alpha * (reward+gamma*Q[next_state,next_action]- Q[state,action])
+        if not terminated:
 
-        if terminated:
+            Q[state,action] += alpha * (reward+gamma*Q[next_state,next_action]- Q[state,action])
+
+        else:
+
+            Q[state,action] += alpha * (reward- Q[state,action])
+
+            success = es_exito(env,reward,terminated)
             break
 
         action = next_action
         state = next_state
 
+    return (r,t,success)
     # END CODE HERE
     # ============================================================
+    
 
 
 def sarsa(

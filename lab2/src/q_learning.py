@@ -32,8 +32,22 @@ def episodio_q_learning(env, Q, alpha, gamma, epsilon, rng):
     #   * El target usa np.max(Q[next_state]) en vez de Q[next_state,
     #     next_action]: por eso Q-learning es off-policy.
 
-    raise NotImplementedError("Completa episodio_q_learning.")
+    state, _ = env.reset()
+    # action = epsilon_greedy(Q,state,epsilon,rng)
+    
+    while True:
 
+        action = epsilon_greedy(Q,state,epsilon,rng)
+
+        next_state, reward, terminated, _, _ = env.step(action)
+
+        Q[state,action] += alpha * (reward+gamma*Q[next_state,np.argmax(Q[next_state],axis=-1).astype(int)]- Q[state,action])
+
+        if terminated:
+            break
+
+        state = next_state
+        
     # END CODE HERE
     # ============================================================
 
