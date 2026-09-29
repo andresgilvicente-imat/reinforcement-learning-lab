@@ -33,21 +33,33 @@ def episodio_q_learning(env, Q, alpha, gamma, epsilon, rng):
     #     next_action]: por eso Q-learning es off-policy.
 
     state, _ = env.reset()
-    # action = epsilon_greedy(Q,state,epsilon,rng)
-    
+    retorno = 0.0
+    pasos = 0
+    success = False
+
     while True:
 
-        action = epsilon_greedy(Q,state,epsilon,rng)
+        action = epsilon_greedy(Q, state, epsilon, rng)
 
-        next_state, reward, terminated, _, _ = env.step(action)
+        next_state, reward, terminated, truncated, _ = env.step(action)
+        retorno += reward
+        pasos += 1
 
-        Q[state,action] += alpha * (reward+gamma*Q[next_state,np.argmax(Q[next_state],axis=-1).astype(int)]- Q[state,action])
+        if terminated or truncated:
+            target = reward
+            success = es_exito(env, reward, terminated)
+        else:
+            target = reward + gamma * np.max(Q[next_state])
 
-        if terminated:
+        Q[state, action] += alpha * (target - Q[state, action])
+
+        if terminated or truncated:
             break
 
         state = next_state
-        
+
+    return retorno, pasos, success
+
     # END CODE HERE
     # ============================================================
 
