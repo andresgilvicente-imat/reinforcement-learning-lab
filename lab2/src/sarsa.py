@@ -37,8 +37,13 @@ def epsilon_greedy(Q, state, epsilon, rng):
     """
     # ============================================================
     # START CODE HERE
-
-    raise NotImplementedError("Completa epsilon_greedy.")
+    nA = Q.shape[-1]
+    if rng.random() < epsilon:
+        random_action = rng.integers(0,nA)
+        return random_action
+    else:
+        max_action = np.argmax(Q[state])
+        return max_action
 
     # END CODE HERE
     # ============================================================
@@ -72,7 +77,21 @@ def episodio_sarsa(env, Q, alpha, gamma, epsilon, rng):
     #      s <- s', a <- a'.
     #   4. Acumula el retorno y los pasos, y devuelve los tres valores.
 
-    raise NotImplementedError("Completa episodio_sarsa.")
+    state, _ = env.reset()
+    action = epsilon_greedy(Q,state,epsilon,rng)
+    
+    while True:
+        next_state, reward, terminated, _, _ = env.step(action)
+        
+        next_action = epsilon_greedy(Q,next_state,epsilon,rng)
+
+        Q[state,action] += alpha * (reward+gamma*Q[next_state,next_action]- Q[state,action])
+
+        if terminated:
+            break
+
+        action = next_action
+        state = next_state
 
     # END CODE HERE
     # ============================================================
