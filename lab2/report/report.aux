@@ -1,0 +1,27 @@
+\relax 
+\providecommand \babel@aux [2]{\global \let \babel@toc \@gobbletwo }
+\@nameuse{bbl@beforestart}
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\babel@aux{spanish}{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introducción y metodología}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Trabajo previo: valores óptimos $q_*$}{1}{section.2}\protected@file@percent }
+\newlabel{eq:bellman}{{1}{1}{Trabajo previo: valores óptimos \texorpdfstring {$q_*$}{q*}}{equation.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Valores óptimos $q_*(s,a)$ ($\gamma =0.9$, $r_s=-1$, $r_{obs}=-5$, $r_{goal}=+5$) y acciones óptimas $\mathcal  {A}_*(s)$.}}{2}{table.caption.2}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:qstar}{{1}{2}{Valores óptimos $q_*(s,a)$ ($\gamma =0.9$, $r_s=-1$, $r_{obs}=-5$, $r_{goal}=+5$) y acciones óptimas $\mathcal {A}_*(s)$}{table.caption.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Estructura del entorno: acción óptima ($=$: ambas acciones producen la misma transición) y estados iniciales (recuadro).}}{2}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:map}{{1}{2}{Estructura del entorno: acción óptima ($=$: ambas acciones producen la misma transición) y estados iniciales (recuadro)}{figure.caption.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}SARSA}{3}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Fundamentos e implementación}{3}{subsection.3.1}\protected@file@percent }
+\newlabel{eq:Teps}{{3}{3}{Fundamentos e implementación}{equation.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Convergencia en $s_6$ y $s_{13}$}{3}{subsection.3.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Evolución de $Q(s_6,\cdot )$ y $Q(s_{13},\cdot )$ frente a pasos globales (configuración basal).}}{3}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:q}{{2}{3}{Evolución de $Q(s_6,\cdot )$ y $Q(s_{13},\cdot )$ frente a pasos globales (configuración basal)}{figure.caption.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Influencia de los hiperparámetros}{4}{subsection.3.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Efecto de $\alpha $ (10 semillas). $\sigma $: desviación típica estacionaria de $Q(s_{13},{\nearrow })$. Política estable: episodio desde el que la acción greedy es óptima en los 17 estados alcanzables.}}{4}{table.caption.6}\protected@file@percent }
+\newlabel{tab:alpha}{{2}{4}{Efecto de $\alpha $ (10 semillas). $\sigma $: desviación típica estacionaria de $Q(s_{13},\UR )$. Política estable: episodio desde el que la acción greedy es óptima en los 17 estados alcanzables}{table.caption.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces $Q(s_{13},{\nearrow })$ de SARSA y Q-learning para tres valores de $\alpha $. Derecha: distribución en los últimos 5\,000 episodios (10 semillas) y normal teórica $\mathcal  N(q_\varepsilon ,\sigma ^2)$ para $\alpha \le 0.1$. Líneas: $q_*$ (puntos) y $q_\varepsilon $ (trazos).}}{5}{figure.caption.5}\protected@file@percent }
+\newlabel{fig:alpha}{{3}{5}{$Q(s_{13},\UR )$ de SARSA y Q-learning para tres valores de $\alpha $. Derecha: distribución en los últimos 5\,000 episodios (10 semillas) y normal teórica $\mathcal N(\qe ,\sigma ^2)$ para $\alpha \le 0.1$. Líneas: $q_*$ (puntos) y $\qe $ (trazos)}{figure.caption.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Efecto de $\varepsilon $ (10 semillas, $\alpha =0.1$, $Q_0=0$). (a) Retorno de entrenamiento y greedy, con la predicción exacta para la política $\varepsilon $-greedy de $\pi _*$. (b) Media final de $Q(s_{13},{\nearrow })$ y curva $q_\varepsilon (s_{13},{\nearrow })$. (c) Error máxim

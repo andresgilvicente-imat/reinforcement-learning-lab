@@ -1,0 +1,570 @@
+{
+  "gamma": 0.9,
+  "initial_states": [
+    0,
+    4,
+    8,
+    12
+  ],
+  "algorithms": [
+    "sarsa",
+    "q_learning"
+  ],
+  "tolerance_band": 0.1,
+  "groups": {
+    "base": [
+      {
+        "name": "base",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.2,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      }
+    ],
+    "alpha": [
+      {
+        "name": "alpha_0.01",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.01,
+          "epsilon": 0.2,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "alpha_0.05",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.05,
+          "epsilon": 0.2,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "alpha_0.5",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.5,
+          "epsilon": 0.2,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "alpha_1.0",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 1.0,
+          "epsilon": 0.2,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      }
+    ],
+    "epsilon": [
+      {
+        "name": "eps_0.0",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.0,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "eps_0.05",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.05,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "eps_0.1",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.1,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "eps_0.5",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.5,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      }
+    ],
+    "q_init": [
+      {
+        "name": "q0_-5.0",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.2,
+          "q_init": -5.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "q0_5.0",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.2,
+          "q_init": 5.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      }
+    ],
+    "inter": [
+      {
+        "name": "a0.5_e0.5",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.5,
+          "epsilon": 0.5,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "a0.05_e0.5",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.05,
+          "epsilon": 0.5,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "e0_q0-5",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.0,
+          "q_init": -5.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "e0_q0+5",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.0,
+          "q_init": 5.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "e0.05_q0+5",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.05,
+          "q_init": 5.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "e0.05_q0-5",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.05,
+          "q_init": -5.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": null,
+          "alpha_schedule": null
+        }
+      }
+    ],
+    "ext": [
+      {
+        "name": "glie_eps",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.2,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": "glie",
+          "alpha_schedule": null
+        }
+      },
+      {
+        "name": "glie_eps_decay_alpha",
+        "seeds": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "params": {
+          "alpha": 0.1,
+          "epsilon": 0.2,
+          "q_init": 0.0,
+          "episodes": 20000,
+          "rewards": [
+            -1.0,
+            -5.0,
+            5.0
+          ],
+          "eps_schedule": "glie",
+          "alpha_schedule": "rm"
+        }
+      }
+    ]
+  }
+}

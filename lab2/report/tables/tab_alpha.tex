@@ -1,0 +1,13 @@
+\begin{tabular}{lcccccccc}
+\toprule
+ & \multicolumn{3}{c}{SARSA: $Q(s_{13},\nearrow)$} & QL & \multicolumn{2}{c}{Retorno greedy} & \multicolumn{2}{c}{Política estable (ep.)} \\
+\cmidrule(lr){2-4}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+$\alpha$ & $\sigma$ teórica & $\sigma$ emp. & media emp. & media & SARSA & QL & SARSA & QL \\
+\midrule
+0.01 & 0.18 & 0.17 & 1.33 & 2.15 & 1.50 & 1.50 & 17\,187 & 17\,602 \\
+0.05 & 0.41 & 0.41 & 1.29 & 2.15 & 1.50 & 1.50 & 3\,436 & 3\,368 \\
+0.1 & 0.59 & 0.58 & 1.31 & 2.15 & 1.50 & 1.50 & 1\,597 & 1\,414 \\
+0.5 & 1.47 & 1.66 & 1.19 & 2.15 & 1.17 & 1.50 & 1/10 nunca & 202 \\
+1.0 & 2.55 & 4.12 & $-$3.17 & 2.15 & $-$4.90 & 1.50 & 10/10 nunca & 75 \\
+\bottomrule
+\end{tabular}
