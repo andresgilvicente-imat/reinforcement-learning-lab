@@ -1,0 +1,34 @@
+[PASS] epsilon_greedy eps=0.0: P(greedy)=1.0000  (esperado 1.0000)
+[PASS] epsilon_greedy eps=0.2: P(greedy)=0.8993  (esperado 0.9000)
+[PASS] epsilon_greedy eps=0.5: P(greedy)=0.7504  (esperado 0.7500)
+[PASS] epsilon_greedy eps=1.0: P(greedy)=0.4998  (esperado 0.5000)
+[PASS] empate con eps=0 -> siempre la acción 0 (np.argmax)
+[PASS] SARSA: Q(s0,a0) usa Q(s1,a′ ejecutada)  (-5.0000 vs -5.0000)
+[PASS] SARSA: transición terminal sin bootstrap Q(s1,a1) <- Q + α(r − Q)  (-2.5000 vs -2.5000)
+[PASS] SARSA: devuelve (retorno, pasos, éxito)
+[PASS] SARSA: no toca Q(s0,a1) ni Q(s1,a0) ni el terminal
+[PASS] Q-learning: Q(s0,a0) usa max Q(s1,·)  (4.0000 vs 4.0000)
+[PASS] Q-learning: transición terminal sin bootstrap Q(s1,a1) <- Q + α(r − Q)  (-2.5000 vs -2.5000)
+[PASS] Q-learning: devuelve (retorno, pasos, éxito)
+[PASS] Q-learning: no toca Q(s0,a1) ni Q(s1,a0) ni el terminal
+[PASS] runner == sarsa() original (seed=0, α=0.1, ε=0.2, Q0=0.0)
+[PASS] runner == sarsa() original (seed=7, α=0.5, ε=0.5, Q0=5.0)
+[PASS] runner == sarsa() original (seed=3, α=0.05, ε=0.05, Q0=-5.0)
+[PASS] runner == q_learning() original (seed=0, α=0.1, ε=0.2, Q0=0.0)
+[PASS] runner == q_learning() original (seed=7, α=0.5, ε=0.5, Q0=5.0)
+[PASS] runner == q_learning() original (seed=3, α=0.05, ε=0.05, Q0=-5.0)
+[PASS] ε=0 ⇒ SARSA ≡ Q-learning (Q0=0.0)
+[PASS] ε=0 ⇒ SARSA ≡ Q-learning (Q0=5.0)
+[PASS] 500 episodios = prefijo de 2000 (misma semilla)
+[PASS] sarsa: fila del terminal intacta (Q0)
+[PASS] sarsa: inalcanzables [2, 16, 17] intactos (Q0) y sin visitas
+[PASS] q_learning: fila del terminal intacta (Q0)
+[PASS] q_learning: inalcanzables [2, 16, 17] intactos (Q0) y sin visitas
+[PASS] max_a q* = V de Value Iteration (P1)
+[PASS] max_a q* = V de Policy Iteration (P1)
+[PASS] q*(s6,↗) = 2.15
+[PASS] q*(s6,↘) = 5.0
+[PASS] q*(s13,↗) = 2.15
+[PASS] q*(s13,↘) = -5.5
+
+32 PASS, 0 FAIL

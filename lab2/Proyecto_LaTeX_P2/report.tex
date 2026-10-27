@@ -1,0 +1,554 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{lmodern}
+
+\usepackage[spanish,es-noshorthands,es-tabla]{babel}
+
+\usepackage[a4paper,margin=2.4cm,headheight=14pt]{geometry}
+
+\usepackage{amsmath,amssymb}
+
+\usepackage{graphicx}
+
+\usepackage{booktabs}
+
+\usepackage{multirow}
+
+\usepackage{xcolor}
+
+\usepackage{caption}
+
+\usepackage{fancyhdr}
+
+\usepackage{listings}
+
+\usepackage[most]{tcolorbox}
+
+\usepackage[hidelinks]{hyperref}
+
+\usepackage{float}
+
+
+
+\graphicspath{{figures/}}
+
+\emergencystretch=3em
+
+\captionsetup{font=small,labelfont=bf}
+
+\definecolor{verde}{RGB}{0,110,40}
+
+\newtcolorbox{comando}[1]{colback=gray!6,colframe=verde,fonttitle=\bfseries\small,title={#1},boxrule=0.6pt,left=4pt,right=4pt,top=2pt,bottom=2pt}
+
+\lstset{basicstyle=\ttfamily\footnotesize,columns=fullflexible,keepspaces=true,frame=none,
+  literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1 {ñ}{{\~n}}1}
+
+\pagestyle{fancy}\fancyhf{}
+
+\lhead{\small\itshape Práctica 2 -- RL tabular sin modelo}\rhead{\small J.C. A.G. J.G.}\cfoot{\thepage}
+
+
+
+\newcommand{\UR}{{\nearrow}}
+
+\newcommand{\DR}{{\searrow}}
+
+\newcommand{\qe}{q_\varepsilon}
+
+
+
+\begin{document}
+
+\begin{titlepage}\centering
+
+{\large\bfseries Aprendizaje por Refuerzo\par}\vspace{2mm}
+
+Grado en Ingeniería Matemática e Inteligencia Artificial (IMAT) -- 4º A\\ Universidad Pontificia Comillas, ICAI\par
+
+\vspace{2.2cm}\rule{\textwidth}{0.6pt}\par\vspace{4mm}
+
+{\LARGE Práctica 2:\par}\vspace{2mm}{\Large\bfseries RL tabular sin modelo:\\ SARSA y Q-learning\par}
+
+\vspace{4mm}\rule{\textwidth}{0.6pt}\par\vspace{2cm}
+
+{\large\bfseries Informe de laboratorio\par}\vspace{2cm}
+
+Jorge Carnicero\\ Jorge González\\ Andrés Gil\par\vspace{1cm}
+
+\vfill
+
+
+
+\newpage
+
+\begin{minipage}{0.92\textwidth}\small\tableofcontents\end{minipage}
+
+\end{titlepage}
+
+
+
+%=====================================================================
+
+\newpage
+
+\section{Introducción y metodología}
+
+
+
+En la Práctica~1 resolvimos \emph{Jump To The Goal} con programación dinámica, usando el modelo $p(s',r\mid s,a)$. Ahora el agente no lo conoce: aprende solo de las transiciones $(S_t,A_t,R_{t+1},S_{t+1})$ que genera. Implementamos los dos métodos de diferencias temporales (TD) tabulares, SARSA y Q-learning, y analizamos qué estiman, cuánta experiencia necesitan y por qué difieren.
+
+
+
+\textbf{Configuración base.} Entorno determinista, $\gamma=0.9$, $r_s=-1$, $r_{obs}=-5$, $r_{goal}=+5$, $\varepsilon=0.2$, $\alpha=0.1$ y $Q_0=0$ (valores por defecto de \texttt{main.py}), $20\,000$ episodios ($\approx 80\,000$ pasos) y estado inicial uniforme en $s_{init}=\{s_0,s_4,s_8,s_{12}\}$.
+
+
+
+\textbf{Metodología.} Hemos validado el código mediante las 32 comprobaciones automáticas de \texttt{validate\_\allowbreak algorithms.py} (actualizaciones, terminales y desempates). Para comparar los algoritmos hemos variado $\alpha$, $\varepsilon$, $Q_0$ y algunas combinaciones, además de probar exploración decreciente. Así estudiamos su efecto sobre la rapidez de aprendizaje, el retorno y los valores $Q$. Hemos utilizado un ejecutor que llama a las funciones originales, reproduce \texttt{main.py} y registra $Q$, visitas $N(s,a)$, retornos y evaluaciones greedy ($\varepsilon=0$) cada 20 episodios desde los cuatro estados iniciales. Repetimos cada configuración con 10 semillas (20 en la base), las mismas para ambos algoritmos, y presentamos medias, percentiles e intervalos bootstrap al 95\,\%. Calculamos las referencias teóricas con el modelo $P$, sin proporcionárselo a los agentes. En total, hemos realizado 400 entrenamientos.
+
+
+
+Distinguimos \emph{pasos} (transiciones globales), \emph{episodios} y \emph{visitas} a un par. El \emph{retorno} es la suma sin descuento de un episodio, como lo registra \texttt{entrenamiento.py}. Los resultados de eficiencia se refieren a este entorno determinista y a las configuraciones ensayadas; las pruebas estadísticas constituyen evidencia experimental, no garantías universales.
+
+
+
+\begin{comando}{Reproducción (desde \texttt{lab2/experiments})}
+
+\ttfamily\small python validate\_algorithms.py\\ python run\_experiments.py\\ python analyze\_results.py
+
+\end{comando}
+
+
+
+%=====================================================================
+
+\newpage
+
+\section{Trabajo previo: valores óptimos \texorpdfstring{$q_*$}{q*}}
+
+
+
+Con el modelo determinista, $q_*$ cumple la ecuación de optimalidad de Bellman
+
+\begin{equation}
+q_*(s,a)=r(s,a)+\gamma\max_{a'}q_*(s',a'),\qquad q_*(T,\cdot)=0 .
+\label{eq:bellman}
+\end{equation}
+
+El agente siempre avanza una columna (o cae una fila en la última), así que el grafo de transiciones es acíclico y $q_*$ se obtiene hacia atrás: $q_*(s_7,\cdot)=5$, $q_*(s_3,\cdot)=-1+0.9\cdot 5=3.5$, $q_*(s_6,\UR)=-1+0.9\cdot3.5=2.15$, $q_*(s_{13},\UR)=-1+0.9\,q_*(s_{11},\UR)=2.15$ y $q_*(s_{13},\DR)=-1+0.9\max_{a}q_*(s_{18},a)=-5.5$. La Tabla~\ref{tab:qstar} recoge los 40 valores, que coinciden con $v_*=\max_a q_*$ de Policy y Value Iteration de la Práctica~1 en los 21 estados.
+
+
+
+\begin{table}[H]\centering
+
+\input{tables/tab_qstar.tex}
+
+\caption{Valores óptimos $q_*(s,a)$ ($\gamma=0.9$, $r_s=-1$, $r_{obs}=-5$, $r_{goal}=+5$) y acciones óptimas $\mathcal{A}_*(s)$.}
+
+\label{tab:qstar}
+
+\end{table}
+
+
+
+\begin{figure}[H]\centering
+
+\includegraphics[width=0.6\textwidth]{fig_map.pdf}
+
+\caption{Estructura del entorno: acción óptima ($=$: ambas acciones producen la misma transición) y estados iniciales (recuadro).}
+
+\label{fig:map}
+
+\end{figure}
+
+
+
+Del modelo extraemos cuatro propiedades que condicionan el aprendizaje (Figura~\ref{fig:map}):
+
+\begin{itemize}\itemsep0pt
+
+\item \textbf{Inalcanzables:} $s_2$ y $s_{17}$ únicamente tienen obstáculos como posibles predecesores, mientras que $s_{16}$, situado en la primera columna, no tiene predecesores y tampoco pertenece a $s_{init}$. Un método sin modelo no puede aprender sus $Q$, que se quedarán en $Q_0$. No es un fallo del algoritmo: su convergencia exige visitar cada par.
+
+\item \textbf{Sin ruta al objetivo:} desde $s_1$, $s_{15}$, $s_{18}$ y $s_{19}$ solo se puede chocar; lo óptimo es minimizar la pérdida ($s_{18}$ choca ya, $-5$, en lugar de $s_{18}\to s_{15}\to s_{19}\to T$, $-5.95$).
+
+\item \textbf{Empates:} en $s_1$, $s_3$, $s_7$, $s_{15}$ y $s_{19}$ ambas acciones producen la misma transición; en $s_{10}$, en cambio, dos rutas distintas ($s_6$ y $s_{14}$) valen $3.5$.
+
+\item \textbf{Riesgo exploratorio:} $q_*$ supone que después se actuará de forma óptima. Un error desde $s_{14}$ lleva a un choque seguro ($q_*(s_{14},\DR)=-5.5$), mientras que desde $s_6$ solo alarga el camino ($q_*(s_6,\UR)=2.15$). Esta asimetría explicará la principal diferencia entre los algoritmos.
+
+\end{itemize}
+
+
+
+%=====================================================================
+
+\newpage
+
+\section{SARSA}
+
+\subsection{Fundamentos e implementación}
+
+
+
+SARSA es un método TD(0) de control: tras cada transición actualiza
+
+\begin{equation}
+Q(S,A)\leftarrow Q(S,A)+\alpha\big[R+\gamma Q(S',A')-Q(S,A)\big],
+\end{equation}
+
+donde $A'$ es la acción que se ejecutará realmente en $S'$, elegida con la misma política $\varepsilon$-greedy (\emph{on-policy}). Si $S'$ es terminal el target es solo $R$. El target sustituye el retorno completo por una estimación (\emph{bootstrapping}), por lo que el $+5$ se propaga hacia atrás un estado por visita.
+
+
+
+\begin{lstlisting}
+if terminated:
+    Q[state, action] += alpha * (reward - Q[state, action])
+else:
+    next_action = epsilon_greedy(Q, next_state, epsilon, rng)
+    Q[state, action] += alpha * (
+        reward + gamma * Q[next_state, next_action] - Q[state, action]
+    )
+\end{lstlisting}
+
+
+
+\textbf{Qué estima.} Con transiciones deterministas, el valor esperado del target dado $Q$ es
+
+\begin{equation}
+(T_\varepsilon Q)(s,a)=r+\gamma\Big[(1-\varepsilon)\max_{a'}Q(s',a')+\tfrac{\varepsilon}{2}\textstyle\sum_{a'}Q(s',a')\Big].
+\label{eq:Teps}
+\end{equation}
+
+$T_\varepsilon$ es una contracción de módulo $\gamma$ con punto fijo único $\qe$, el valor de la mejor política $\varepsilon$-greedy. Con $\varepsilon$ constante, SARSA fluctúa alrededor de $\qe$ cuando la política greedy permanece estable; con $\alpha$ grande, los cambios de política pueden desplazar incluso su media. No se garantiza convergencia exacta con $\alpha$ constante. Bajo condiciones estándar, SARSA converge a $q_*$ con probabilidad 1 si la exploración es GLIE ($\varepsilon_k\to0$ y todos los pares se visitan infinitas veces) y las tasas de aprendizaje cumplen, para cada par, $\sum_k\alpha_k=\infty$ y $\sum_k\alpha_k^2<\infty$. Con $\alpha$ constante y targets aleatorios, $Q$ no se detiene nunca: fluctuar es el comportamiento esperado, no un error.
+
+
+
+\subsection{Convergencia en \texorpdfstring{$s_6$}{s6} y \texorpdfstring{$s_{13}$}{s13}}
+
+
+
+\begin{figure}[H]\centering
+
+\includegraphics[width=0.7\textwidth]{fig_q_s6_s13.pdf}
+
+\caption{Evolución de $Q(s_6,\cdot)$ y $Q(s_{13},\cdot)$ frente a pasos globales (configuración base).}
+
+\label{fig:q}
+
+\end{figure}
+
+
+
+\textbf{Estado $s_6$} (Figura~\ref{fig:q}, izquierda). Para $\DR$, el target es siempre $5$, pues termina en el objetivo. Para $\UR$, depende de $Q(s_3,A')$: durante el aprendizaje puede variar porque las dos acciones de $s_3$, aunque producen la misma transición, aún tienen estimaciones distintas. Al igualarse estas, desaparece dicha variabilidad y $\qe(s_6,\cdot)=q_*(s_6,\cdot)=(2.15,\,5)$.
+
+\begin{itemize}\itemsep0pt
+
+\item $Q(s_6,\DR)\leftarrow Q+\alpha(5-Q)$: el error decae como $5(1-\alpha)^n$ y entra en la banda $\pm0.1$ tras $\ln(0.02)/\ln(0.9)\approx38$ visitas (mediana medida: 40; 1\,873 pasos).
+
+\item $Q(s_6,\UR)$ empieza \emph{negativa} (mínimo medio $-0.31$): su target $-1+\gamma Q(s_3,\cdot)$ usa $Q(s_3)\approx0$, así que el $-1$ llega antes que el $+5$. Se vuelve positiva cuando el valor se propaga $s_7\to s_3\to s_6$ y alcanza $2.15$ tarde (mediana 10\,372 pasos), porque al ser no greedy solo se elige al explorar: 693 visitas frente a 6\,160 de $\DR$. Su aprendizaje requiere más pasos globales por las escasas visitas y por el retraso inicial de la propagación desde sus sucesores.
+
+\end{itemize}
+
+
+
+\textbf{Estado $s_{13}$, acción $\DR$.} Lleva a $s_{18}$, desde donde solo se puede chocar. Con probabilidad $0.9$ el agente elige después $\DR$ (target $-1+0.9(-5)=-5.5$) y con $0.1$ elige $\UR$ ($-1+0.9(-5.95)=-6.355$), luego $\qe(s_{13},\DR)=-5.586$. Medimos $-5.583$ (media temporal del último 25\,\%, 20 semillas). El estimador fluctúa alrededor de $-5.59$, no de $-5.5$, y sus caídas se deben a las actualizaciones asociadas a decisiones exploratorias.
+
+
+
+\textbf{Estado $s_{13}$, acción $\UR$.} Lleva a $s_{11}$, una bifurcación: $\UR$ conduce al objetivo ($Q(s_{11},\UR)=3.5$) y $\DR$ a un choque seguro ($Q(s_{11},\DR)=-5.95$). El target vale $2.15$ con probabilidad $0.9$ y $-6.355$ con $0.1$:
+
+\begin{equation}
+\qe(s_{13},\UR)=-1+0.9\,(0.9\cdot3.5+0.1\cdot(-5.95))=1.2995<q_*(s_{13},\UR)=2.15 .
+\end{equation}
+
+La media medida es $1.302$, lo que confirma la predicción. Fases: hasta $\sim\!500$ pasos ambas $Q$ son negativas (solo se han propagado los $-1$); entre $500$ y $3\,000$ pasos $Q(s_{13},\UR)$ sube a medida que $s_{11}$ aprende; después oscila alrededor de $1.30$. Cada punto de la curva es un valor instantáneo, no el esperado: una sola elección exploratoria en $s_{11}$ lo baja en $\alpha(Q+6.355)\approx0.77$, y la recuperación es geométrica.
+
+
+
+\subsection{Influencia de los hiperparámetros}
+
+
+
+\begin{figure}[H]\centering
+
+\includegraphics[width=0.75\textwidth]{fig_alpha_s13.pdf}
+
+\caption{$Q(s_{13},\UR)$ de SARSA y Q-learning para tres valores de $\alpha$. Derecha: distribución en los últimos 5\,000 episodios (10 semillas) y aproximación normal con media y varianza estacionarias teóricas para $\alpha\le0.1$. Líneas: $q_*$ (puntos) y $\qe$ (trazos).}
+
+\label{fig:alpha}
+
+\end{figure}
+
+
+
+\begin{table}[H]\centering\small
+
+\input{tables/tab_alpha.tex}
+
+\caption{Efecto de $\alpha$ (10 semillas). $\sigma$: desviación típica estacionaria de $Q(s_{13},\UR)$. Política estable: episodio desde el que la acción greedy es óptima en los 17 estados alcanzables.}
+
+\label{tab:alpha}
+
+\end{table}
+
+
+
+\textbf{Tasa de aprendizaje.} En $(s_{13},\UR)$, el siguiente movimiento desde $s_{11}$ hace que SARSA reciba un target de $2.15$ con probabilidad $0.9$ o de $-6.355$ con probabilidad $0.1$. Con $\alpha$ pequeño, cada actualización modifica poco el estimador; con $\alpha$ mayor, las exploraciones producen caídas y recuperaciones más bruscas. La Tabla~\ref{tab:alpha} muestra que la dispersión calculada a partir de esas actualizaciones es cercana a la medida para $\alpha\le0.1$ ($0.18/0.17$, $0.41/0.41$, $0.59/0.58$). Las medias obtenidas, entre $1.29$ y $1.33$, siguen próximas a $\qe=1.2995$. Por tanto, aumentar $\alpha$ acelera el aprendizaje, pero también aumenta las oscilaciones: la política alcanza la optimalidad tras 17\,187 episodios con $\alpha=0.01$ y tras 1\,597 con $\alpha=0.1$.
+
+
+
+Con $\alpha\ge0.5$ la aproximación falla porque el ruido realimenta la política. En la semilla~0 con $\alpha=0.5$ (Figura~\ref{fig:alpha}, segmento plano), dos exploraciones seguidas en $s_{11}$ hunden $Q(s_{13},\UR)$ por debajo de $Q(s_{13},\DR)$ en el episodio 1\,444. El error se propaga aguas arriba: en $s_9$, $s_4$ y $s_{12}$ chocar ($-5$) pasa a parecer mejor que continuar ($\approx-5.5$). $s_{13}$ apenas vuelve a visitarse y el error persiste unos 4\,800 episodios. En esa semilla, el 11\,\% de las evaluaciones posteriores al episodio 1\,000 son subóptimas. Con $\alpha=1$, $Q$ es la última muestra: el choque tiene valor determinista $-5$ y continuar vale lo que dio la última muestra, a menudo contaminada por un error exploratorio aguas abajo. La política greedy acaba chocando desde los cuatro estados iniciales (retorno $-4.90$).
+
+
+
+\textbf{Número de episodios.} Con $\alpha$ y $\varepsilon$ constantes, entrenar $N$ episodios es exactamente el prefijo de un entrenamiento más largo con la misma semilla (comprobado). El presupuesto no cambia la dinámica, solo dónde se detiene. Con 500 episodios ($\approx2\,000$ pasos) $Q(s_6,\DR)$ está prácticamente aprendida (mediana: 1\,873 pasos) y $Q(s_{13},\UR)$ ronda $\qe$. Con 2\,000, la política es óptima en los 17 estados (mediana: episodio 1\,509). Tras $\sim\!10\,000$ episodios, los valores seguidos de SARSA muestran sobre todo fluctuaciones, mientras que algunos pares raros de Q-learning aún pueden reducir su error. \emph{La política alcanza la optimalidad mucho antes de que los estimadores se estabilicen}; con $\alpha$ constante, SARSA mantiene fluctuaciones.
+
+
+
+\begin{figure}[H]\centering
+
+\includegraphics[width=1.0\textwidth]{fig_epsilon.pdf}
+
+\caption{Efecto de $\varepsilon$ (10 semillas, $\alpha=0.1$, $Q_0=0$). (a) Retorno de entrenamiento y greedy, con la predicción exacta para la política $\varepsilon$-greedy de $\pi_*$. (b) Media final de $Q(s_{13},\UR)$ y curva $\qe(s_{13},\UR)$. (c) Error máximo frente a $q_*$ en los pares alcanzables.}
+
+\label{fig:eps}
+
+\end{figure}
+
+
+\newpage
+\textbf{Exploración.} $\varepsilon$ sí cambia el objetivo: $\qe(s_{13},\UR)=-1+0.9\,[(1-\tfrac{\varepsilon}{2})3.5-\tfrac{\varepsilon}{2}5.95]$ es lineal en $\varepsilon$, y las medias empíricas siguen esa recta (Figura~\ref{fig:eps}b). Más exploración aumenta el impacto de las decisiones arriesgadas: la tasa de éxito en entrenamiento cae del 92.6\,\% ($\varepsilon=0.05$) al 72.8\,\% ($0.2$) y al 42.5\,\% ($0.5$). El retorno coincide con el valor exacto de la conducta $\varepsilon$-greedy (Figura~\ref{fig:eps}a). La política greedy es óptima en todos los casos, por lo que la pérdida se debe a explorar, no a aprender mal.
+
+
+
+\begin{figure}[H]\centering
+
+\includegraphics[width=\textwidth]{fig_qinit.pdf}
+
+\caption{Retorno greedy medio desde $s_{init}$ (10 semillas). (a) Efecto de $Q_0$ con $\varepsilon=0.2$. (b) Q-learning con poca exploración (con $\varepsilon=0$ SARSA es idéntico).}
+
+\label{fig:q0}
+
+\end{figure}
+
+
+
+\textbf{Inicialización.} $Q_0=0$ es optimista para 19 de los 34 pares alcanzables ($q_*<0$): una acción que acaba mal baja de 0 y la alternativa no probada pasa a ser greedy. Esto es exploración dirigida. Con $Q_0=-5$ (pesimista), chocar tiene target $-5=Q_0$ y no cambia nada, mientras que dar un paso tiene target $-1+0.9(-5)=-5.5<-5$. El agente prefiere chocar hasta que la exploración descubre el objetivo y el valor se propaga: la evaluación greedy tarda 5\,790 episodios en ser óptima (80 con $Q_0=0$; Figura~\ref{fig:q0}a). $Q_0=+5$ aprende igual de rápido y prueba más al principio (retorno $-1.58$ frente a $-1.43$ en 500 episodios). Además, los pares con $q_*=5$ ($s_6\DR$, $s_7$, $s_{14}\UR$) empiezan ya en su valor exacto. Tras suficientes visitas, $Q_0$ solo deja huella en los pares poco visitados, con un factor $(1-\alpha)^N$.
+
+
+
+\textbf{Interacciones.} La combinación peligrosa es poca exploración con pesimismo: con $\varepsilon=0$ y $Q_0=-5$ el agente choca en todos los episodios, y con $\varepsilon=0.05$ el éxito es del 0.06\,\% tras 20\,000 episodios (Figura~\ref{fig:q0}b; SARSA se comporta igual), porque propagar el valor hasta $s_{init}$ exige varias exploraciones consecutivas. El optimismo puede sustituir a la exploración: con $\varepsilon=0$ y $Q_0=+5$ la política es óptima en 130 episodios. Con $\alpha$ y $\varepsilon$ altos ($0.5/0.5$), SARSA acumula ambos ruidos: retorno greedy final $0.38$ frente a $1.50$ con $\alpha=0.05$.
+
+
+
+\textbf{Exploración decreciente (extensión).} Con $\varepsilon_k=0.2/(1+k/1000)$, que acaba en 0.0095, la media temporal de $Q(s_{13},\UR)$ alcanza $2.10$ (desviación típica $0.15$), cerca de $q_*=2.15$. Este resultado es empírico: aunque $\varepsilon$ disminuye progresivamente, eso no garantiza que el agente siga visitando infinitas veces todos los pares estado-acción. Por tanto, no podemos asegurar la convergencia teórica solo por reducir la exploración.
+
+
+
+%=====================================================================
+
+\newpage
+
+\section{Q-learning}
+
+\subsection{Fundamentos}
+
+
+
+Q-learning actualiza con el máximo del estado siguiente:
+
+\begin{equation}
+Q(S,A)\leftarrow Q(S,A)+\alpha\big[R+\gamma\max_{a'}Q(S',a')-Q(S,A)\big].
+\end{equation}
+
+Es \emph{off-policy}: la conducta es $\varepsilon$-greedy, pero el target evalúa la política greedy, la acción que se ejecute después no interviene. Su valor esperado es la ecuación de optimalidad~\eqref{eq:bellman} ($T_0$, una contracción con punto fijo $q_*$). Converge a $q_*$ con probabilidad 1 si todos los pares se visitan infinitas veces y, para cada par, $\sum_k\alpha_k=\infty$ y $\sum_k\alpha_k^2<\infty$. En este entorno determinista, condicionado a la tabla $Q$ el target no tiene ruido de transición. Una vez exactos los sucesores, $|Q_{n+1}-q_*|=(1-\alpha)|Q_n-q_*|$ en cada visita. Como el grafo es acíclico, una inducción desde los estados terminales justifica la convergencia a $q_*$ para $0<\alpha\le1$ en los pares visitados infinitamente. Con $\varepsilon>0$ fijo estos son los 34 pares alcanzables; con cobertura insuficiente la conclusión no vale.
+
+
+
+\subsection{Convergencia en \texorpdfstring{$s_6$}{s6} y \texorpdfstring{$s_{13}$}{s13}}
+
+
+
+En $s_6$ (Figura~\ref{fig:q}, derecha) ambos algoritmos comparten el target de $\DR$, que termina en el objetivo. Para $\UR$ pueden diferir transitoriamente: SARSA usa $Q(s_3,A')$ y Q-learning $\max_a Q(s_3,a)$. Como las acciones de $s_3$ producen la misma transición, sus estimaciones acaban igualándose. Para $\DR$ necesitan las mismas visitas (38 para entrar en la banda); en pasos globales Q-learning tarda más (3\,759 frente a 1\,873 en $\DR$; 38\,939 frente a 10\,372 en $\UR$), porque inicialmente visita preferentemente $s_{14}$ y no $s_6$ (Sección~\ref{sec:comp}).
+
+
+
+En $s_{13}$ el target de $\UR$ usa $\max_a Q(s_{11},a)=3.5$, aunque después la conducta explore $\DR$ en $s_{11}$. Por eso $Q(s_{13},\UR)\to2.15$ con desviación final $2\cdot10^{-13}$, frente a $0.58$ en SARSA, y $Q(s_{13},\DR)\to-5.5$. Las fases son las mismas que en SARSA (valores negativos, propagación, final), pero el final es un punto fijo exacto.
+
+
+
+\begin{figure}[H]\centering
+
+\includegraphics[width=\textwidth]{fig_visits_error.pdf}
+
+\caption{Error relativo final frente a visitas, para todos los pares alcanzables ($\alpha=0.1$, $\varepsilon\in\{0.05,0.1,0.2,0.5\}$, 10 semillas). Referencia: $q_*$ para Q-learning, $\qe$ para SARSA.}
+
+\label{fig:visits}
+
+\end{figure}
+
+
+
+La Figura~\ref{fig:visits}a muestra que el error de cada par sigue $(1-\alpha)^N$ hasta la precisión de máquina ($10^{-16}$). Los puntos desplazados a la derecha son pares cuyos sucesores convergieron más tarde. Esto explica los errores residuales: $Q(s_3,\UR)$, con 37 visitas en la semilla~0, vale $3.42$ (error $0.08\approx3.5\cdot0.9^{37}$). En SARSA (Figura~\ref{fig:visits}b), los pares con target determinista siguen la misma curva, pero aquellos cuyo resultado depende de decisiones posteriores con recompensas distintas mantienen oscilaciones entre $10^{-2}$ y $1$.
+
+
+
+\subsection{Influencia de los hiperparámetros}
+
+
+
+\textbf{$\alpha$.} En las configuraciones ensayadas, aumentar $\alpha$ acelera los backups deterministas, sin el coste de varianza de SARSA: la política es óptima en los 17 estados tras 1\,414 episodios con $\alpha=0.1$, 202 con $0.5$ y 75 con $\alpha=1$ (Tabla~\ref{tab:alpha}). Con $\alpha=1$ cada actualización es un \emph{backup} de Bellman de una transición observada, como una Value Iteration asíncrona en este MDP determinista. No debe generalizarse este efecto a targets aleatorios.
+
+
+
+\textbf{$\varepsilon$.} No cambia el objetivo ($Q(s_{13},\UR)=2.15$ para todo $\varepsilon$, Figura~\ref{fig:eps}b), pero sí la \emph{cobertura}. Las acciones no greedy solo se aprenden explorando. Con $\varepsilon=0.05$, $Q(s_6,\UR)=0.08$ tras 20\,000 episodios (frente a $2.15$) y el error máximo es $3.56$; con $\varepsilon=0.5$ es $5\cdot10^{-11}$ (Figura~\ref{fig:eps}c). El coste de explorar recae en el retorno de entrenamiento, igual que en SARSA.
+
+
+
+\textbf{$Q_0$ y $\varepsilon=0$.} $Q_0=-5$ retrasa el aprendizaje (2\,840 episodios hasta la política greedy óptima, Figura~\ref{fig:q0}a) y $Q_0=+5$ da el menor error final ($0.001$). Con $\varepsilon=0$ y $Q_0=+5$ el retorno greedy es óptimo, pero 3 pares no se visitan nunca y algunos estados fuera de la trayectoria conservan una acción incorrecta (error máximo $10.5$). Una política óptima \emph{sobre su trayectoria} no implica valores ni acciones correctos en todos los estados.
+
+
+
+%=====================================================================
+
+\newpage
+
+\section{Comparación entre SARSA y Q-learning}\label{sec:comp}
+
+
+
+Respuestas a las preguntas del enunciado, que justificamos a continuación con los cuatro criterios. \emph{¿Misma política?} No necesariamente: ambas aprenden políticas óptimas, pero pueden diferir en $s_{10}$, donde las dos acciones tienen el mismo valor óptimo. \emph{¿Mismos valores?} No: Q-learning se aproxima a $q_*$ y SARSA fluctúa alrededor de $\qe$. \emph{¿Mejor retorno en entrenamiento?} SARSA, en la fase intermedia (500--10\,000 episodios), porque evita la ruta en la que explorar es más caro. Al finalizar el entrenamiento, ambos alcanzan el mismo retorno greedy óptimo de $1.5$.
+
+
+
+\begin{figure}[H]\centering
+
+\includegraphics[width=\textwidth]{fig_returns.pdf}
+
+\caption{Configuración base, 20 semillas. Arriba: retorno de entrenamiento (media móvil de 100 episodios, IC 95\,\%) y valor exacto de la conducta $\varepsilon$-greedy de $\pi_*$ según la ruta elegida en $s_{10}$. Centro: retorno greedy. Abajo: fracción de semillas cuya acción greedy en $s_{10}$ es $\DR$.}
+
+\label{fig:returns}
+
+\end{figure}
+
+
+
+\begin{table}[H]\centering\footnotesize
+
+\input{tables/tab_returns.tex}
+
+\caption{Retorno de entrenamiento por fases (20 semillas pareadas). Dif.: SARSA $-$ QL con IC bootstrap al 95\,\%; $p$: test de permutación de signos.}
+
+\label{tab:returns}
+
+\end{table}
+
+
+
+\textbf{A. Eficiencia muestral.} Con $\alpha\le0.1$ no hay diferencias relevantes (Figura~\ref{fig:eff}). Ambos alcanzan el retorno greedy óptimo desde $s_{init}$ hacia el episodio 80 ($\approx300$--$450$ pasos) y la acción óptima en los 17 estados hacia el 1\,500. La diferencia aparece con $\alpha$: entre los $\alpha$ ensayados, Q-learning reduce monótonamente los pasos hasta una política óptima en los 17 estados, gracias a los backups deterministas; esta mejora no es estrictamente monótona para el retorno greedy desde $s_{init}$. SARSA empeora desde $\alpha=0.5$ por el ruido de su target. Para un mismo par con target determinista ambos necesitan las mismas visitas. Las diferencias en pasos se deben a cuántas veces visita cada conducta ese par (caso de $s_6$). En ambos, la política greedy alcanza antes la optimalidad que la estabilización de los valores.
+
+
+
+\begin{figure}[H]\centering
+
+\includegraphics[width=\textwidth]{fig_efficiency.pdf}
+
+\caption{Pasos globales (mediana: 10 semillas por $\alpha$, 20 en la base) hasta que, de forma estable, (a) la política greedy es óptima desde $s_{init}$ y (b) en los 17 estados alcanzables, y (c) hasta que $Q(s_{13},\UR)$ entra por primera vez en $\pm0.1$ de su referencia. ×: la mayoría de semillas no lo alcanza.}
+
+\label{fig:eff}
+
+\end{figure}
+
+
+
+\textbf{B. Evolución del retorno} (Figura~\ref{fig:returns}, Tabla~\ref{tab:returns}). Tras el aprendizaje, ambos alcanzan el mismo retorno greedy óptimo de $1.5$, aunque inicialmente hay diferencias transitorias. En entrenamiento distinguimos tres fases.
+
+\begin{itemize}\itemsep0pt
+
+\item \emph{Inicial (0--100 episodios).} Ambos chocan con frecuencia (retorno $\approx-2.7$). Q-learning es algo mejor ($-0.19$, $p=0.008$), lo que es coherente con que el máximo propaga antes el valor del objetivo. La ventaja de su política greedy entre los episodios 20 y 200 no es significativa ($p=0.08$).
+
+\item \emph{Intermedia (500--10\,000).} SARSA obtiene $0.18$ más por episodio (IC $[0.12,0.24]$, $p<0.001$, 15 de 20 semillas). La causa es $s_{10}$: la acción greedy de Q-learning es $\DR$ en el 67\,\% de los casos, la de SARSA en el 6\,\%. Explorando en $s_{14}$ se pierden 11 puntos (choque en lugar de $+5$), y en $s_6$ solo 2. El valor exacto de la conducta $\varepsilon$-greedy es $-0.741$ por $s_6$ frente a $-1.033$ por $s_{14}$, y, considerando las frecuencias de esa ruta en ambos algoritmos, la diferencia prevista es $(0.671-0.062)\times0.2916\approx0.178$, muy próxima a la observada ($0.185$). SARSA \emph{ve} este riesgo, $\qe(s_{10},\UR)=3.24>\qe(s_{10},\DR)=2.56$; para Q-learning ambas valen $3.5$.
+
+\item \emph{Final (10\,000--20\,000).} La diferencia desaparece ($p=0.13$), pero no porque Q-learning aprenda el riesgo.
+
+\end{itemize}
+
+
+
+\textbf{¿Por qué Q-learning elige $s_{14}$ y por qué deja de hacerlo?} Con $Q_0=0$, \texttt{argmax} desempata hacia $\UR$. En $s_{14}$, $\UR$ es la acción que llega al objetivo y $Q(s_{14},\UR)$ aprende el $+5$ enseguida; en $s_6$, $\UR$ es el rodeo. Al principio $\max Q(s_{14})>\max Q(s_6)$, así que $\DR$ domina en $s_{10}$. Al recibir más actualizaciones, queda más cerca de $3.5$ por debajo y se mantiene greedy. Es una preferencia que se autorrefuerza. Hacia el episodio 9\,300, tras suficientes visitas a la acción minoritaria, ambas estimaciones se vuelven \emph{idénticas entre sí} en doble precisión (en la semilla~0 terminan en $3.4999999999999956$, no en $3.5$ exacto). \texttt{argmax} resuelve entonces ese empate hacia $\UR$. Es un efecto del redondeo numérico, no un cambio de preferencia debido al aprendizaje del riesgo. Con $\varepsilon=0.05$ ese empate no llega en 20\,000 episodios y la ventaja de SARSA persiste hasta el final ($+0.08$, $p=0.004$; predicción $0.9\times0.10$).
+
+
+
+\textbf{C. Exploración frente a explotación.} SARSA incorpora en sus valores su propia exploración futura: estima la conducta que realmente ejecuta y prefiere rutas robustas a los errores. Q-learning actualiza hacia el máximo greedy, sin incorporar en el target el coste de la exploración posterior; con suficiente cobertura, se aproxima a $q_*$ incluso con $\varepsilon=0.5$, pero no distingue rutas igual de buenas sin exploración y distintas con ella. Las políticas difieren solo donde los $\arg\max$ de $\qe$ y $q_*$ difieren. Lo comprobamos para $\varepsilon\le0.5$ y $r_{obs}$ hasta $-50$: solo ocurre en $s_{10}$, que es un empate en $q_*$, así que ambas políticas finales son óptimas. Explorar demasiado poco puede bloquear el aprendizaje ($\varepsilon=0$, $Q_0=-5$); explorar demasiado hunde el retorno de entrenamiento ($-3.1$ con $\varepsilon=0.5$) y aleja a SARSA de $q_*$, aunque mejora la cobertura de Q-learning.
+
+
+
+\textbf{D. Valores finales} (Tabla~\ref{tab:final}).
+
+\begin{itemize}\itemsep0pt
+
+\item \emph{Q-learning:} los 34 pares alcanzables se aproximan a $q_*$ en los $20\,000$ episodios. El error máximo de la configuración base es $\le0.08$ y siempre aparece en pares con menos de 100 visitas ($s_3$ en 16 de 20 semillas).
+
+\item \emph{SARSA:} fluctúa alrededor de $\qe$ (por ejemplo, $-1.815$ frente a $-1.815$ en $s_4\DR$; $1.30$ en $s_{13}\UR$). Difiere de $q_*$ cuando las decisiones posteriores pueden producir recompensas diferentes: $s_0\DR$ $0.05$ frente a $0.94$, $s_4\DR$ $-1.81$ frente a $-0.16$. Los pares cuya trayectoria posterior es determinista ($s_6$, $s_{11}$, $s_{14}$, $s_{18}$, última columna) coinciden en ambos.
+
+\item \emph{Sesgo de la media temporal en $s_{10}$:} para SARSA, la media de $Q(s_{10},\DR)$ por episodios ($2.32$) queda por debajo de $\qe=2.56$. Esto no implica otro punto fijo: cuando la acción es greedy recibe actualizaciones frecuentes, mientras que sus estimaciones bajas pueden persistir más episodios al seleccionarse principalmente por exploración. En los registros, una media aproximada ponderada por visitas asciende a $2.50$, frente a $2.32$ al ponderar uniformemente por episodios. Así, el procedimiento de muestreo afecta a la media observada, que no debe confundirse con el valor esperado del target.
+
+\item \emph{Inalcanzables:} $s_2$, $s_{16}$ y $s_{17}$ conservan $Q_0$ en los dos algoritmos. Es falta de experiencia, no un error de estimación.
+
+\end{itemize}
+
+
+
+\begin{table}[H]\centering\normalsize\setlength{\tabcolsep}{2.8pt}
+
+\input{tables/tab_final.tex}
+
+\caption{Valores finales (media temporal del último 25\,\%, 20 semillas; entre paréntesis, desviación típica temporal de SARSA) y visitas medianas $N$ (SARSA/QL). Estados inalcanzables omitidos: $Q=Q_0=0$ y $N=0$ en ambos.}
+
+\label{tab:final}
+
+\end{table}
+
+
+
+En cuanto a las políticas, las finales son óptimas en todos los estados alcanzables y coinciden salvo en $s_{10}$ en 2 de 20 semillas. En ellas SARSA acaba en $\DR$, igualmente óptima, porque $Q(s_{10},\DR)$ fluctúa; Q-learning elige $\UR$ en 20/20 por el desempate exacto. Las acciones de $s_1$, $s_{15}$ y $s_{19}$ siguen alternando hasta el final sin consecuencias, porque ambas son equivalentes.
+
+
+
+%=====================================================================
+\newpage
+\section{Conclusiones}
+
+
+
+\begin{itemize}\itemsep1pt
+
+\item \textbf{Cada algoritmo estima una cosa distinta.} Q-learning usa el operador de optimalidad y se aproxima a $q_*$ en todos los pares alcanzables del experimento; la convergencia exacta requeriría prolongar las visitas. SARSA muestrea $T_\varepsilon$ y fluctúa alrededor de $\qe$. Ejemplo: $Q(s_{13},\UR)$ vale $1.30$ en SARSA frente a $q_*=2.15$, y la diferencia es exactamente el coste esperado de explorar en $s_{11}$.
+
+\item \textbf{La política greedy alcanza la optimalidad antes que los valores} (unos 1\,500 episodios frente a unos 10\,000 para algunos estimadores de Q-learning). Las acciones greedy en estados con empate pueden seguir alternando y SARSA mantiene fluctuaciones. Los pares no greedy y los inalcanzables muestran que convergencia exige visitas: el error decae como $(1-\alpha)^N$.
+
+\item \textbf{Efecto distinto de $\alpha$ en este entorno.} En SARSA, un $\alpha$ grande hace que las decisiones exploratorias provoquen cambios bruscos en $Q$; con $\alpha\ge0.5$, observamos pérdidas de estabilidad. En Q-learning, los targets deterministas permiten aprender más rápido al aumentar $\alpha$, aunque esto no tiene por qué ocurrir en entornos estocásticos.
+
+\item \textbf{La ventaja intermedia de SARSA en entrenamiento se explica por las distintas rutas en $s_{10}$}, donde explorar tiene costes asimétricos. La diferencia de retorno observada, $0.185$ por episodio, coincide aproximadamente con la predicción del modelo ($0.178$). La ventaja desaparece al final porque las estimaciones de Q-learning acaban empatando por el redondeo numérico, no porque aprenda a tener en cuenta el riesgo de explorar.
+
+\item \textbf{Exploración e inicialización interactúan.} $Q_0=0$ ya es optimista en este entorno; el pesimismo con poca exploración ($Q_0=-5$, $\varepsilon\le0.05$) mantiene al agente casi siempre chocando durante los $20\,000$ episodios ensayados.
+
+\end{itemize}
+
+
+
+\section{Uso de la IA}
+
+\begin{itemize}\itemsep1pt
+
+    \item Ayuda en la corrección ortográfica y en la redacción científica, mejorando la cohesión, la claridad y las explicaciones del texto.
+
+    \item Ayuda a la hora de generación de plots.
+
+    \item Ayuda en la generación de tablas y fórmulas en Latex
+
+\end{itemize}
+
+\end{document}
