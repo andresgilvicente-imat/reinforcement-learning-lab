@@ -66,7 +66,41 @@ def episodio_sarsa(env, agente, alpha, gamma, epsilon, rng):
     #   que S' es terminal (q̂(S', ·) = 0); un episodio truncado acaba, pero
     #   S' no es terminal.
 
-    raise NotImplementedError("Implementa episodio_sarsa y borra esta línea.")
+    obs, _ = env.reset() # obs = [x, y, colision, objetivo]
+    activos = agente.activos(obs)
+    q = valores_q(agente.w, activos)
+    accion = epsilon_greedy(q, epsilon, rng)
+    steps = 0
+    retorno = 0
+
+    while True:
+
+        steps += 1
+
+        obs2, r, terminated, truncated, _ = env.step(accion)
+        activos2 = agente.activos(obs2)
+        retorno += r
+
+        q2 = valores_q(agente.w, activos2)
+        accion2 = epsilon_greedy(q2, epsilon, rng)
+
+        agente.w[accion, activos] += alpha*(
+            (
+                (r if terminated else r + gamma*q2[accion2]) - q[accion]
+
+            )
+        )
+
+        activos = activos2
+        accion = accion2
+        q = valores_q(agente.w, activos)
+
+        if terminated or truncated:
+            break
+
+    exito = es_exito(obs2, terminated)
+
+    return (retorno, steps, exito)
 
     # END CODE HERE
     # ============================================================

@@ -47,7 +47,29 @@ def episodio_q_learning(env, agente, alpha, gamma, epsilon, rng):
     #   ejecutará en S'. Elige la acción con epsilon_greedy al principio de
     #   cada paso y trata terminated y truncated igual que en SARSA.
 
-    raise NotImplementedError("Implementa episodio_q_learning y borra esta línea.")
+    obs, _ = env.reset() # obs = [x, y, colision, objetivo]
+    activos = agente.activos(obs)
+
+    while True:
+
+        q = valores_q(agente.w, activos)
+        accion = epsilon_greedy(q, epsilon, rng)
+
+        obs2, r, terminated, truncated, _ = env.step(accion)
+        activos2 = agente.activos(obs2)
+
+        agente.w[accion, activos] += alpha*(
+            (
+                (r + gamma*valores_q(agente.w, activos2)) - q
+            
+            )*activos
+        )
+
+        activos = activos2
+
+        if terminated:
+            break
+
 
     # END CODE HERE
     # ============================================================
@@ -67,5 +89,4 @@ def q_learning(env, agente, num_episodios, alpha, gamma, seed=None, evalua_cada=
         alpha,
         gamma,
         seed=seed,
-        evalua_cada=evalua_cada,
-    )
+        evalua_cada=evalua_

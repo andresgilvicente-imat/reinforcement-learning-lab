@@ -106,7 +106,7 @@ def valores_q(w, activos):
     # ============================================================
     # START CODE HERE
 
-    raise NotImplementedError("Implementa valores_q y borra esta línea.")
+    return w[:, activos].sum(axis=1)
 
     # END CODE HERE
     # ============================================================
@@ -132,7 +132,13 @@ def epsilon_greedy(q, epsilon, rng):
     # ============================================================
     # START CODE HERE
 
-    raise NotImplementedError("Implementa epsilon_greedy y borra esta línea.")
+    num_actions = q.shape[0]
+    random_num = rng.random()
+
+    if random_num < epsilon:
+        return int(rng.choice([i for i in range(num_actions)]))
+
+    return int(np.argmax(q, axis=0))
 
     # END CODE HERE
     # ============================================================
