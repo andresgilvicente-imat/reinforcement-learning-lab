@@ -35,7 +35,9 @@ class AgenteLineal:
             el vector ``w_a`` de la acción ``a``.
     """
 
-    def __init__(self, coder: TileCoder, num_acciones: int = 4, q0: float = 0.0):
+    def __init__(
+        self, coder: TileCoder, num_acciones: int = 4, q0: float = 0.0
+    ):
         self.coder = coder
         self.num_acciones = int(num_acciones)
         self.w = np.full(
@@ -136,9 +138,14 @@ def epsilon_greedy(q, epsilon, rng):
     random_num = rng.random()
 
     if random_num < epsilon:
-        return int(rng.choice([i for i in range(num_actions)]))
+        return int(rng.integers(num_actions))
 
-    return int(np.argmax(q, axis=0))
+    # Elegir las acciones de Q máximo
+    max_q = np.max(q)
+    mejores_acciones = np.flatnonzero(q == max_q)
+
+    desempate_aleatorio = int(rng.choice(mejores_acciones))
+    return desempate_aleatorio
 
     # END CODE HERE
     # ============================================================

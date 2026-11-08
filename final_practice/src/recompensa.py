@@ -28,8 +28,13 @@ def recompensa(pos, nueva_pos, colision, objetivo):
     """
     # ============================================================
     # START CODE HERE
+    if objetivo:
+        return 100.0
 
-    raise NotImplementedError("Implementa recompensa y borra esta línea.")
+    if colision:
+        return -100.0
+
+    return -1.0
 
     # END CODE HERE
     # ============================================================

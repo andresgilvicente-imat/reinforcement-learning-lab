@@ -16,7 +16,10 @@ Hay que completar dos funciones:
 from __future__ import annotations
 
 from agente import epsilon_greedy, valores_q  # noqa: F401  (en los huecos)
-from entrenamiento import entrena, es_exito  # noqa: F401  (es_exito, en el hueco)
+from entrenamiento import (
+    entrena,
+    es_exito,
+)  # noqa: F401  (es_exito, en el hueco)
 
 
 def epsilon_sarsa(k, num_episodios):
@@ -32,7 +35,27 @@ def epsilon_sarsa(k, num_episodios):
     # ============================================================
     # START CODE HERE
 
-    raise NotImplementedError("Implementa epsilon_sarsa y borra esta línea.")
+    # Params
+    epsilon_inicial = 0.70
+    epsilon_final = 0.02
+
+    # Steps de fase
+    fase_1 = int(0.20 * num_episodios)
+    fase_2 = int(0.85 * num_episodios)
+
+    # Fase de exploración
+    if k < fase_1:
+        return epsilon_inicial
+
+    # Fase de decaimiento exponencial
+    elif k < fase_2:
+        progreso = (k - fase_1) / max(1, fase_2 - fase_1 - 1)
+
+        return epsilon_inicial * (epsilon_final / epsilon_inicial) ** progreso
+
+    # Fase de explotación
+    else:
+        return epsilon_final
 
     # END CODE HERE
     # ============================================================
@@ -66,7 +89,7 @@ def episodio_sarsa(env, agente, alpha, gamma, epsilon, rng):
     #   que S' es terminal (q̂(S', ·) = 0); un episodio truncado acaba, pero
     #   S' no es terminal.
 
-    obs, _ = env.reset() # obs = [x, y, colision, objetivo]
+    obs, _ = env.reset()  # obs = [x, y, colision, objetivo]
     activos = agente.activos(obs)
     q = valores_q(agente.w, activos)
     accion = epsilon_greedy(q, epsilon, rng)
@@ -84,11 +107,8 @@ def episodio_sarsa(env, agente, alpha, gamma, epsilon, rng):
         q2 = valores_q(agente.w, activos2)
         accion2 = epsilon_greedy(q2, epsilon, rng)
 
-        agente.w[accion, activos] += alpha*(
-            (
-                (r if terminated else r + gamma*q2[accion2]) - q[accion]
-
-            )
+        agente.w[accion, activos] += alpha * (
+            ((r if terminated else r + gamma * q2[accion2]) - q[accion])
         )
 
         activos = activos2

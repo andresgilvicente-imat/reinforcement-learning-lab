@@ -14,7 +14,10 @@ Hay que completar dos funciones:
 from __future__ import annotations
 
 from agente import epsilon_greedy, valores_q  # noqa: F401  (en los huecos)
-from entrenamiento import entrena, es_exito  # noqa: F401  (es_exito, en el hueco)
+from entrenamiento import (
+    entrena,
+    es_exito,
+)  # noqa: F401  (es_exito, en el hueco)
 
 
 def epsilon_q_learning(k, num_episodios):
@@ -30,7 +33,27 @@ def epsilon_q_learning(k, num_episodios):
     # ============================================================
     # START CODE HERE
 
-    raise NotImplementedError("Implementa epsilon_q_learning y borra esta línea.")
+    # Params
+    epsilon_inicial = 0.70
+    epsilon_final = 0.02
+
+    # Steps de fase
+    fase_1 = int(0.20 * num_episodios)
+    fase_2 = int(0.85 * num_episodios)
+
+    # Fase de exploración
+    if k < fase_1:
+        return epsilon_inicial
+
+    # Fase de decaimiento exponencial
+    elif k < fase_2:
+        progreso = (k - fase_1) / max(1, fase_2 - fase_1 - 1)
+
+        return epsilon_inicial * (epsilon_final / epsilon_inicial) ** progreso
+
+    # Fase de explotación
+    else:
+        return epsilon_final
 
     # END CODE HERE
     # ============================================================
@@ -47,7 +70,7 @@ def episodio_q_learning(env, agente, alpha, gamma, epsilon, rng):
     #   ejecutará en S'. Elige la acción con epsilon_greedy al principio de
     #   cada paso y trata terminated y truncated igual que en SARSA.
 
-    obs, _ = env.reset() # obs = [x, y, colision, objetivo]
+    obs, _ = env.reset()  # obs = [x, y, colision, objetivo]
     activos = agente.activos(obs)
 
     while True:
@@ -58,11 +81,8 @@ def episodio_q_learning(env, agente, alpha, gamma, epsilon, rng):
         obs2, r, terminated, truncated, _ = env.step(accion)
         activos2 = agente.activos(obs2)
 
-        agente.w[accion, activos] += alpha*(
-            (
-                (r + gamma*valores_q(agente.w, activos2)) - q
-            
-            )*activos
+        agente.w[accion, activos] += alpha * (
+            ((r + gamma * valores_q(agente.w, activos2)) - q) * activos
         )
 
         activos = activos2
@@ -70,12 +90,13 @@ def episodio_q_learning(env, agente, alpha, gamma, epsilon, rng):
         if terminated:
             break
 
-
     # END CODE HERE
     # ============================================================
 
 
-def q_learning(env, agente, num_episodios, alpha, gamma, seed=None, evalua_cada=0):
+def q_learning(
+    env, agente, num_episodios, alpha, gamma, seed=None, evalua_cada=0
+):
     """Entrena a ``agente`` con semi-gradient Q-learning.
 
     Args y valor devuelto: ver :func:`entrenamiento.entrena`.
@@ -89,4 +110,5 @@ def q_learning(env, agente, num_episodios, alpha, gamma, seed=None, evalua_cada=
         alpha,
         gamma,
         seed=seed,
-        evalua_cada=evalua_
+        evalua_cada=evalua_cada,
+    )
