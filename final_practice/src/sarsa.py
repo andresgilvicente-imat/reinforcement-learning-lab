@@ -36,12 +36,12 @@ def epsilon_sarsa(k, num_episodios):
     # START CODE HERE
 
     # Params
-    epsilon_inicial = 0.70
-    epsilon_final = 0.02
+    epsilon_inicial = 0.20
+    epsilon_final = 0.001
 
     # Steps de fase
-    fase_1 = int(0.20 * num_episodios)
-    fase_2 = int(0.85 * num_episodios)
+    fase_1 = int(0.05 * num_episodios)
+    fase_2 = int(0.60 * num_episodios)
 
     # Fase de exploración
     if k < fase_1:
