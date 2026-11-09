@@ -1,0 +1,3 @@
+algoritmo,rho,n_tiles,num_tilings,q0,eps,recompensa,seed,alpha,diverge,llegadas,tasa,choques,extra,pasos_entreno,wmax,segundos,conjunto
+sarsa,0.16,12x20,4,0.0,codigo,src,1,0.04,0,1000,1.0,0,0.009,46315,34.696941004811954,3.025451421737671,test
+q_learning,0.08,12x16,8,0.0,codigo,src,2,0.01,0,1000,1.0,0,0.028,46785,18.251759420138086,3.6802098751068115,test
