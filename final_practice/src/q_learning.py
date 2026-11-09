@@ -72,23 +72,36 @@ def episodio_q_learning(env, agente, alpha, gamma, epsilon, rng):
 
     obs, _ = env.reset()  # obs = [x, y, colision, objetivo]
     activos = agente.activos(obs)
+    
+    steps = 0
+    retorno = 0
 
     while True:
 
         q = valores_q(agente.w, activos)
         accion = epsilon_greedy(q, epsilon, rng)
 
+        steps += 1
+
         obs2, r, terminated, truncated, _ = env.step(accion)
         activos2 = agente.activos(obs2)
+        retorno += r
+
+        q2 = valores_q(agente.w, activos2)
+        accion2 = epsilon_greedy(q2, 0, rng) # Change if we want more speed to just make greedy
 
         agente.w[accion, activos] += alpha * (
-            ((r + gamma * valores_q(agente.w, activos2)) - q) * activos
+            ((r if terminated else r + gamma * q2[accion2]) - q[accion])
         )
 
         activos = activos2
 
-        if terminated:
+        if terminated or truncated:
             break
+
+    exito = es_exito(obs2, terminated)
+
+    return (retorno, steps, exito)
 
     # END CODE HERE
     # ============================================================
